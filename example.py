@@ -6,6 +6,7 @@ import datetime
 # # it will also output the raw yolo dump in the yolo_dump folder. this is what seth can use to train a new model if he wants.
 # # when I run the yolo model, it creates a text file for every image that has the coordinates to the colonies it has found, and places it in 
 # # ./runs/detect/predict/labels this is what my code grabs and uses to do discimination for crowded colonies, and is why we have to deal with text files
+# # this is what is getting moved to yolo_dump
 cpr.process_petri_dish_image(image_folder_path='./images/', good_colony_coord_output_path='./good_colony_coords/', raw_yolo_dump_path='./yolo_dump/')
 
 # # after running process_petri_dish_image, your code would presumably take the 6 text files in good_colony_coords, select 96 colonies, append the number of the well each was destined for
