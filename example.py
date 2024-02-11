@@ -10,8 +10,5 @@ cpr.process_petri_dish_image(image_folder_path='./images/', good_colony_coord_ou
 
 # # after running process_petri_dish_image, your code would presumably take the 6 text files in good_colony_coords, select 96 colonies, append the number of the well each was destined for
 # # (more on that in the comments, search for "sarah"), and then call this function on them.
-# cpr.create_metadata(image_folder_path='./images/', colony_coords_folder_path='./good_colony_coords', create_petri_dish_view=True, create_colony_view= True)
+cpr.create_metadata(image_folder_path='./images/', colony_coords_folder_path='./good_colony_coords', create_petri_dish_view=True, create_colony_view= True)
 
-
-# some test stuff 
-cpr.discriminate(prediction_file_path = './2024-02-09_23-30-20-544479/yolo_dump/predict/labels/WIN_20231113_12_53_02_Pro.txt', good_output_path='./test/piss/', image_file_path= './images/WIN_20231113_12_53_02_Pro.jpg', binary_save_folder_path='./test/')
