@@ -11,5 +11,6 @@ cpr.process_petri_dish_image(image_folder_path='./images/', good_colony_coord_ou
 
 # # after running process_petri_dish_image, your code would presumably take the 6 text files in good_colony_coords, select 96 colonies, append the number of the well each was destined for
 # # (more on that in the comments, search for "sarah"), and then call this function on them.
+# 
 cpr.create_metadata(image_folder_path='./images/', colony_coords_folder_path='./good_colony_coords', create_petri_dish_view=True, create_colony_view= True)
 

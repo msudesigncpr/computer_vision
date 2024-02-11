@@ -175,6 +175,19 @@ def process_petri_dish_image(image_folder_path, good_colony_coord_output_path,  
 # create_petri_dish_view: Boolean that determines whether or not to create a petri dish view
 # create_colony_view: Boolean that determines whether or not to create a colony view
 
+# File structure:
+# - metadata_output_path
+#   - colony_view
+#     - [image name]
+#       - sample_[colony number].jpg
+#       - ...
+#    - petri_dish_view
+#      - [image name].jpg
+#      - ...
+#    note: currently if you call this function twice, it will not overwrite the previous metadata 
+#    however, once sarah is appending the well number to the end of each line in the txt file,
+#    this will be fixed. this is because the colony number is currently just a random number
+
 
 def create_metadata(image_folder_path, colony_coords_folder_path, metadata_output_path = './metadata', create_petri_dish_view = False, create_colony_view = False):
     try:
