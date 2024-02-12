@@ -139,7 +139,7 @@ def process_petri_dish_image(image_folder_path, good_colony_coord_output_path,  
         # run model on all images in image_folder_path
         model = YOLO('./models/norb_v3.11.2.pt')
         for image in os.listdir(resized_image_folder_path):
-            model.predict(os.path.join(resized_image_folder_path,image), conf = model_sensitivity, save=True, imgsz=640, save_txt = True, classes = None, save_conf = True, hide_labels = False, hide_conf = False)  
+            model.predict(os.path.join(resized_image_folder_path,image), conf = model_sensitivity, save=True, imgsz=640, save_txt = True, classes = None, save_conf = False)  
 
         # this is where yolo puts the predictions for all the images in image_folder_path
         label_folder_path = './runs/detect/predict/labels'
