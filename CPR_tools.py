@@ -7,69 +7,95 @@ from ultralytics import YOLO
 import datetime
 
 
-def calculate_avg_x_y(img_file_path, row_deviation_threshold = 0.1, column_deviation_threshold = 0.1, margin=20):
+############################################################################################################ -- PINHOLE --
+# This function takes in an image file path and returns False if the lit pinhole is too far away from the center of the image.
+# The function also displays the image with lines and text on it to show the position of the pinhole.
+
+# Parameters:
+# - img_file_path: Path to the image file.
+# - row_deviation_threshold / column_deviation_threshold: Threshold for the row deviation. Deviation is calculated as the absolute difference between the centroid of the pinhole and the center of the image (0.5, 0.5).
+# - margin: Multiplier for the cropped image dimensions.
+
+def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_threshold = 0.1, margin=20):
+    # Reading image
     img = cv2.imread(img_file_path)
     if img is None:
         print("Error: Could not read image file")
         exit()
     
+    # Extracting image dimensions
     img_width = img.shape[1]
     img_height = img.shape[0]
+    
+    # Setting initial x and y coordinates
     x = 0.5
     y = 0.5
+    
+    # Calculating cropped image dimensions
     cropped_image_width = img_width * margin
     cropped_image_height = img_height * margin
 
+    # Cropping the image
     cropped_image = img[int(y-cropped_image_height):int(y+cropped_image_height), 
                         int(x-cropped_image_width):int(x+cropped_image_width)]
     if cropped_image is None:
         print("Error: Could not crop image")
         exit()
 
+    # Converting cropped image to grayscale
     gray_cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
 
+    # Thresholding the grayscale image
     _, binary_image = cv2.threshold(gray_cropped_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
+    # Calculating row and column sums
     row_sums = np.sum(binary_image, axis=1)
     column_sums = np.sum(binary_image, axis=0)
 
+    # Calculating positions
     row_positions = np.arange(binary_image.shape[0])
     column_positions = np.arange(binary_image.shape[1])
 
+    # Calculating total row and column sums
     total_row_sum = np.sum(row_sums)
     total_column_sum = np.sum(column_sums)
 
+    # Calculating average row and column positions
     average_row_position = np.dot(row_positions, row_sums) / total_row_sum
     average_column_position = np.dot(column_positions, column_sums) / total_column_sum
 
+    # Normalizing average positions
     average_row_position /= cropped_image.shape[0]
     average_column_position /= cropped_image.shape[1]
 
+    # Printing average positions
     print("Average Column Position:", average_column_position, "Average Row Position:", average_row_position)
 
+    # Defining line start and end points
     vertical_line_start_point = (int(average_column_position * cropped_image.shape[1]), 0)
     vertical_line_end_point = (int(average_column_position * cropped_image.shape[1]), cropped_image.shape[0])
 
     horizontal_line_start_point = (0, int(average_row_position * cropped_image.shape[0]))
     horizontal_line_end_point = (cropped_image.shape[1], int(average_row_position * cropped_image.shape[0]))
 
+    # Printing line points
     print("vertical line start:", vertical_line_start_point)
     print("vertical line end:", vertical_line_end_point)
-
     print("horizontal line start:", horizontal_line_start_point)
     print("horizontal line end:", horizontal_line_end_point)
 
-
-
+    # Calculating deviations
     column_deviation = abs(0.5 - average_column_position)
     row_deviation = abs(0.5 - average_row_position)
 
-
+    # Checking if deviations exceed thresholds
     if column_deviation > column_deviation_threshold or row_deviation > row_deviation_threshold:
+        # Printing deviation details
         print("One or more deviation exceeds threshold")
         print("Column Deviation:", column_deviation, "Row Deviation:", row_deviation)
         print("Column Deviation Threshold:", column_deviation_threshold, "Row Deviation Threshold:", row_deviation_threshold)
 
+        # Drawing lines and text on image
         cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (0, 0, 255), 1)
         cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 0, 255), 1)
         cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
@@ -80,6 +106,12 @@ def calculate_avg_x_y(img_file_path, row_deviation_threshold = 0.1, column_devia
 
         return False
     else:
+        # Printing deviation details
+        print("Both deviations are within threshold")
+        print("Column Deviation:", column_deviation, "Row Deviation:", row_deviation)
+        print("Column Deviation Threshold:", column_deviation_threshold, "Row Deviation Threshold:", row_deviation_threshold)
+
+        # Drawing lines and text on image
         cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (0, 255, 0), 1)
         cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 255, 0), 1)
         cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
