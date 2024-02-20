@@ -8,7 +8,7 @@ import datetime
 
 
 # dont worry about this one. it'll be what i use to make the pinhole function
-def calculate_avg_x_y(img_file_path, margin = .5):
+def calculate_avg_x_y(img_file_path, margin = 20):
      # -----------------------------------------------LOAD IMAGE AND PROPERTIES------------------
     img = cv2.imread(img_file_path)
     # Check if the image was loaded successfully
@@ -18,20 +18,23 @@ def calculate_avg_x_y(img_file_path, margin = .5):
     
     img_width = img.shape[1]
     img_height = img.shape[0]
-    x = img_width * x
-    y = img_height * y
-    width = img_width * width * margin
-    height = img_height * height * margin
+    x = 0.5
+    y = 0.5
+    cropped_image_width = img_width * margin
+    cropped_image_height = img_height * margin
 
     # -----------------------------------------------CROP & GRAY---------------------------------
-    cropped_image = img[int(y-height) : int(y+height) , int(x-width) : int(x+width)]
+    cropped_image = img[int(y-cropped_image_height) : int(y+cropped_image_height) , int(x-cropped_image_width) : int(x+cropped_image_width)]
     if cropped_image is None:
         print("Error: Could not crop image")
         exit()
+    
+    cv2.imshow("cropped image", cropped_image)
+    cv2.waitKey(100)
 
     # check if there is channel dimension, grayscale if necesary 
     if len(cropped_image.shape) > 2:
-        gray_cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
+        gray_cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY) 
     else:
         gray_cropped_image = cropped_image
 
@@ -44,7 +47,10 @@ def calculate_avg_x_y(img_file_path, margin = .5):
     k = .7 
     threshold = int(mean - k * std_dev)
     binary_image = cv2.threshold(gray_cropped_image, threshold, 255, cv2.THRESH_BINARY)[1]
-    binary_image = cv2.bitwise_not(binary_image)                                                #invert                                 
+    # binary_image = cv2.bitwise_not(binary_image)     #invert
+
+    cv2.imshow("binary image", binary_image)
+    cv2.waitKey(100)
 
     #-----------------------------------------------AVERAGE (x,y) PIXEL POSITIONS----------------------
     row_sums = np.sum(binary_image, axis=1)
@@ -59,17 +65,29 @@ def calculate_avg_x_y(img_file_path, margin = .5):
     total_column_sum = np.sum(column_sums)
 
     # Calculate the average row and column positions
-    average_row_position = np.dot(row_positions, row_sums) / (total_row_sum * width * 2)
-    average_column_position = np.dot(column_positions, column_sums) / (total_column_sum * height * 2)
+    average_row_position = np.dot(row_positions, row_sums) / (total_row_sum * cropped_image_width * 2)
+    average_column_position = np.dot(column_positions, column_sums) / (total_column_sum * cropped_image_height * 2)
 
-    vertical_line_start_point = (average_column_position, 0)
-    vertical_line_end_point = (average_column_position, height)
+    print("Average Column Position: ", average_column_position, "Average Row Position: ", average_row_position)
 
-    cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (255, 0, 0), 2)
-    cv2.imshow(cropped_image)
+    vertical_line_start_point = (int(average_column_position * cropped_image_width), 0)
+    vertical_line_end_point = (int(average_column_position * cropped_image_width), cropped_image_height)
+
+    horizontal_line_start_point = (0, int(average_row_position*cropped_image_height))
+    horizontal_line_end_point = (cropped_image_width, int(average_row_position * cropped_image_height))
+
+    print("vertical line start:",vertical_line_start_point)
+    print("vertical line end:",vertical_line_end_point)
+
+    print("horizontal line start:", horizontal_line_start_point)
+    print("horizontal line end:", horizontal_line_end_point)
+
+    cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (255, 0, 0), 1)
+    cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (255,0,0), 1)
+    cv2.imshow("final image" , cropped_image)
     cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
-    print("Average Column Position: ", average_column_position, "Average Word Position: ", average_row_position)
 
 
 def parse_text_file(file_path):
