@@ -29,6 +29,7 @@ def calculate_avg_x_y(img_file_path, margin = .5):
         print("Error: Could not crop image")
         exit()
 
+    # check if there is channel dimension, grayscale if necesary 
     if len(cropped_image.shape) > 2:
         gray_cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
     else:
@@ -60,6 +61,13 @@ def calculate_avg_x_y(img_file_path, margin = .5):
     # Calculate the average row and column positions
     average_row_position = np.dot(row_positions, row_sums) / (total_row_sum * width * 2)
     average_column_position = np.dot(column_positions, column_sums) / (total_column_sum * height * 2)
+
+    vertical_line_start_point = (average_column_position, 0)
+    vertical_line_end_point = (average_column_position, height)
+
+    cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (255, 0, 0), 2)
+    cv2.imshow(cropped_image)
+    cv2.waitKey(0)
 
     print("Average Column Position: ", average_column_position, "Average Word Position: ", average_row_position)
 
@@ -262,7 +270,7 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                     y = int(float(elements[2]) * image_height)
                     h = int(float(elements[3]) * image_height) 
                     w = int(float(elements[4]) * image_width)
-                    # colony_number = int(elements[5])                                                          # SARAH: append the colony number (well letter/number) to the end of every line. 
+                    # colony_number = int(elements[6])                                                          # SARAH: append the colony number (well letter/number) to the end of every line. 
                                                                                                                 # this will get used below, but its just a random number for now
                     r = int(h/2)
 
