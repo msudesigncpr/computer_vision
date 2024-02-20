@@ -16,24 +16,32 @@ import datetime
 # - row_deviation_threshold / column_deviation_threshold: Threshold for the row deviation. Deviation is calculated as the absolute difference between the centroid of the pinhole and the center of the image (0.5, 0.5).
 # - margin: Multiplier for the cropped image dimensions.
 
-def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_threshold = 0.1, margin=20):
+def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_threshold = 0.1, center_point = (0.5, 0.5), x_margin=0.03, y_margin = 0.05):
     # Reading image
     img = cv2.imread(img_file_path)
     if img is None:
         print("Error: Could not read image file")
         exit()
-    
+
     # Extracting image dimensions
     img_width = img.shape[1]
     img_height = img.shape[0]
     
     # Setting initial x and y coordinates
-    x = 0.5
-    y = 0.5
+    x = float(center_point[0]) * img_width
+    y = float(center_point[1]) * img_height
     
     # Calculating cropped image dimensions
-    cropped_image_width = img_width * margin
-    cropped_image_height = img_height * margin
+    cropped_image_width = img_width * x_margin
+    cropped_image_height = img_height * y_margin
+
+    # print box around where image will be cropped
+    cv2.rectangle(img, (int(x-cropped_image_width), int(y-cropped_image_height)), (int(x+cropped_image_width), int(y+cropped_image_height)), (255, 255, 255), 2)
+    cv2.imshow("my plans for cropping your image", img)
+    cv2.waitKey(0)
+
+    x = center_point[0]
+    y = center_point[1]
 
     # Cropping the image
     cropped_image = img[int(y-cropped_image_height):int(y+cropped_image_height), 
@@ -41,6 +49,10 @@ def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_thres
     if cropped_image is None:
         print("Error: Could not crop image")
         exit()
+
+    cv2.imshow("cropped image", cropped_image)
+    cv2.waitKey(0)
+
 
     # Converting cropped image to grayscale
     gray_cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
@@ -70,6 +82,11 @@ def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_thres
 
     # Printing average positions
     print("Average Column Position:", average_column_position, "Average Row Position:", average_row_position)
+    
+
+    # resize cropped image to 640 x 640
+    cropped_image = cv2.resize(cropped_image, (640, 640))
+
 
     # Defining line start and end points
     vertical_line_start_point = (int(average_column_position * cropped_image.shape[1]), 0)
