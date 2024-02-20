@@ -7,11 +7,8 @@ from ultralytics import YOLO
 import datetime
 
 
-# dont worry about this one. it'll be what i use to make the pinhole function
-def calculate_avg_x_y(img_file_path, margin = 20):
-     # -----------------------------------------------LOAD IMAGE AND PROPERTIES------------------
+def calculate_avg_x_y(img_file_path, row_deviation_threshold = 0.1, column_deviation_threshold = 0.1, margin=20):
     img = cv2.imread(img_file_path)
-    # Check if the image was loaded successfully
     if img is None:
         print("Error: Could not read image file")
         exit()
@@ -23,70 +20,74 @@ def calculate_avg_x_y(img_file_path, margin = 20):
     cropped_image_width = img_width * margin
     cropped_image_height = img_height * margin
 
-    # -----------------------------------------------CROP & GRAY---------------------------------
-    cropped_image = img[int(y-cropped_image_height) : int(y+cropped_image_height) , int(x-cropped_image_width) : int(x+cropped_image_width)]
+    cropped_image = img[int(y-cropped_image_height):int(y+cropped_image_height), 
+                        int(x-cropped_image_width):int(x+cropped_image_width)]
     if cropped_image is None:
         print("Error: Could not crop image")
         exit()
-    
-    cv2.imshow("cropped image", cropped_image)
-    cv2.waitKey(100)
 
-    # check if there is channel dimension, grayscale if necesary 
-    if len(cropped_image.shape) > 2:
-        gray_cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY) 
-    else:
-        gray_cropped_image = cropped_image
+    gray_cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
 
-    # -----------------------------------------------THRESHOLD BINERIZATION----------------------
-    hist = cv2.calcHist([gray_cropped_image], [0], None, [256], [0, 256])
-    hist = hist.ravel()
-    z = np.linspace(0, 255, 256)
-    param = norm.fit(z, loc=np.mean(hist), scale=np.std(hist))
-    mean, std_dev = param
-    k = .7 
-    threshold = int(mean - k * std_dev)
-    binary_image = cv2.threshold(gray_cropped_image, threshold, 255, cv2.THRESH_BINARY)[1]
-    # binary_image = cv2.bitwise_not(binary_image)     #invert
+    _, binary_image = cv2.threshold(gray_cropped_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
-    cv2.imshow("binary image", binary_image)
-    cv2.waitKey(100)
-
-    #-----------------------------------------------AVERAGE (x,y) PIXEL POSITIONS----------------------
     row_sums = np.sum(binary_image, axis=1)
     column_sums = np.sum(binary_image, axis=0)
 
-    # Calculate row and column positions
     row_positions = np.arange(binary_image.shape[0])
     column_positions = np.arange(binary_image.shape[1])
 
-    # Compute the total row and column sums
     total_row_sum = np.sum(row_sums)
     total_column_sum = np.sum(column_sums)
 
-    # Calculate the average row and column positions
-    average_row_position = np.dot(row_positions, row_sums) / (total_row_sum * cropped_image_width * 2)
-    average_column_position = np.dot(column_positions, column_sums) / (total_column_sum * cropped_image_height * 2)
+    average_row_position = np.dot(row_positions, row_sums) / total_row_sum
+    average_column_position = np.dot(column_positions, column_sums) / total_column_sum
 
-    print("Average Column Position: ", average_column_position, "Average Row Position: ", average_row_position)
+    average_row_position /= cropped_image.shape[0]
+    average_column_position /= cropped_image.shape[1]
 
-    vertical_line_start_point = (int(average_column_position * cropped_image_width), 0)
-    vertical_line_end_point = (int(average_column_position * cropped_image_width), cropped_image_height)
+    print("Average Column Position:", average_column_position, "Average Row Position:", average_row_position)
 
-    horizontal_line_start_point = (0, int(average_row_position*cropped_image_height))
-    horizontal_line_end_point = (cropped_image_width, int(average_row_position * cropped_image_height))
+    vertical_line_start_point = (int(average_column_position * cropped_image.shape[1]), 0)
+    vertical_line_end_point = (int(average_column_position * cropped_image.shape[1]), cropped_image.shape[0])
 
-    print("vertical line start:",vertical_line_start_point)
-    print("vertical line end:",vertical_line_end_point)
+    horizontal_line_start_point = (0, int(average_row_position * cropped_image.shape[0]))
+    horizontal_line_end_point = (cropped_image.shape[1], int(average_row_position * cropped_image.shape[0]))
+
+    print("vertical line start:", vertical_line_start_point)
+    print("vertical line end:", vertical_line_end_point)
 
     print("horizontal line start:", horizontal_line_start_point)
     print("horizontal line end:", horizontal_line_end_point)
 
-    cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (255, 0, 0), 1)
-    cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (255,0,0), 1)
-    cv2.imshow("final image" , cropped_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+
+
+    column_deviation = abs(0.5 - average_column_position)
+    row_deviation = abs(0.5 - average_row_position)
+
+
+    if column_deviation > column_deviation_threshold or row_deviation > row_deviation_threshold:
+        print("One or more deviation exceeds threshold")
+        print("Column Deviation:", column_deviation, "Row Deviation:", row_deviation)
+        print("Column Deviation Threshold:", column_deviation_threshold, "Row Deviation Threshold:", row_deviation_threshold)
+
+        cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (0, 0, 255), 1)
+        cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 0, 255), 1)
+        cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+        cv2.putText(cropped_image, (str(average_row_position)[:8] + ")"), (int(0.1*cropped_image.shape[0]),int(0.2*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+        cv2.imshow("final image", cropped_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        return False
+    else:
+        cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (0, 255, 0), 1)
+        cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 255, 0), 1)
+        cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+        cv2.putText(cropped_image, (str(average_row_position)[:8] + ")"), (int(0.1*cropped_image.shape[0]),int(0.2*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+        cv2.imshow("final image", cropped_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        return True
 
 
 

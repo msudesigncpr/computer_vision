@@ -13,4 +13,5 @@ import datetime
 # # at the end of the line (more on that in the comments, search for "sarah"), and then call this function on them.
 # cpr.create_metadata(image_folder_path='./images/', colony_coords_folder_path='./good_colony_coords/', create_petri_dish_view=True, create_colony_view= True)
 
-cpr.calculate_avg_x_y('./pinhole_test.jpg')
+cpr.calculate_avg_x_y('./pinhole_good_test.jpg')
+cpr.calculate_avg_x_y('./pinhole_bad_test.jpg')
