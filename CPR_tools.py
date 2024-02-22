@@ -40,8 +40,8 @@ def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_thres
     cv2.imshow("my plans for cropping your image", img)
     cv2.waitKey(0)
 
-    x = center_point[0]
-    y = center_point[1]
+    # x = center_point[0]
+    # y = center_point[1]
 
     # Cropping the image
     cropped_image = img[int(y-cropped_image_height):int(y+cropped_image_height), 
@@ -338,7 +338,7 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                     y = int(float(elements[2]) * image_height)
                     h = int(float(elements[3]) * image_height) 
                     w = int(float(elements[4]) * image_width)
-                    # colony_number = int(elements[6])                                                          # SARAH: append the colony number (well letter/number) to the end of every line. 
+                    colony_number = int(elements[6])                                                          # SARAH: append the colony number (well letter/number) to the end of every line. 
                                                                                                                 # this will get used below, but its just a random number for now
                     r = int(h/2)
 
@@ -358,7 +358,7 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                         # Crop the image to focus on the colony area
                         cropped_image = image[int(y-h) : int(y+h) , int(x-w) : int(x+w)]
                         # random number
-                        colony_number = random.randint(1, 1000)                                                     #SARAH: this will be replaced with the colony number above, once you start sending me back files with that
+                        # colony_number = random.randint(1, 1000)                                                     #SARAH: this will be replaced with the colony number above, once you start sending me back files with that
 
                         cv2.imwrite(os.path.join(bing, '_' + str(colony_number) + '.jpg'), cropped_image)
 

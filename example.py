@@ -13,6 +13,6 @@ import datetime
 # # at the end of the line (more on that in the comments, search for "sarah"), and then call this function on them.
 # cpr.create_metadata(image_folder_path='./images/', colony_coords_folder_path='./good_colony_coords/', create_petri_dish_view=True, create_colony_view= True)
 
-cpr.pinhole('./pinhole_good_test.jpg', x_margin=1, y_margin=1)
-cpr.pinhole('./pinhole_bad_test.jpg', x_margin=1, y_margin=1)
-# cpr.pinhole('./pinhole_original_test.jpg', center_point= (0.48, 0.5))
+# cpr.pinhole('./pinhole_good_test.jpg', x_margin=1, y_margin=1)
+# cpr.pinhole('./pinhole_bad_test.jpg', x_margin=1, y_margin=1)
+cpr.pinhole('./pinhole_original_test.jpg', center_point= (0.48, 0.5))
