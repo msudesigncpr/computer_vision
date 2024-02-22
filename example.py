@@ -15,4 +15,5 @@ import datetime
 
 # cpr.pinhole('./pinhole_good_test.jpg', x_margin=1, y_margin=1)
 # cpr.pinhole('./pinhole_bad_test.jpg', x_margin=1, y_margin=1)
-cpr.pinhole('./pinhole_original_test.jpg', center_point= (0.48, 0.5))
+cpr.pinhole('./pinhole_lights_on.jpg', center_point= (0.48, 0.5))
+

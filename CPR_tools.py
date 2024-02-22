@@ -16,7 +16,7 @@ import datetime
 # - row_deviation_threshold / column_deviation_threshold: Threshold for the row deviation. Deviation is calculated as the absolute difference between the centroid of the pinhole and the center of the image (0.5, 0.5).
 # - margin: Multiplier for the cropped image dimensions.
 
-def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_threshold = 0.1, center_point = (0.5, 0.5), x_margin=0.03, y_margin = 0.05):
+def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_threshold = 0.1, center_point = (0.5, 0.5), x_margin=0.07, y_margin = 0.09):
     # Reading image
     img = cv2.imread(img_file_path)
     if img is None:
@@ -59,6 +59,8 @@ def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_thres
 
     # Thresholding the grayscale image
     _, binary_image = cv2.threshold(gray_cropped_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
+    cv2.imshow("binary image", binary_image)
 
     # Calculating row and column sums
     row_sums = np.sum(binary_image, axis=1)
