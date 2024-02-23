@@ -28,37 +28,40 @@ def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_thres
     cropped_image = cv2.resize(cropped_image, (640, 480))
 
 
-    # Converting cropped image to grayscale
+    # create binary image
     gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
-
-    # Thresholding the grayscale image
     _, binary_image = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
-
     kernel = np.ones((3,3), np.uint8)
     binary_image = cv2.morphologyEx(binary_image, cv2.MORPH_CLOSE, kernel)
 
-    # display images 
-    img = cv2.resize(img, (640, 480))
-    cv2.imshow('Original Image', img)
-    cv2.waitKey(500)
+    # # display images 
+    # img = cv2.resize(img, (640, 480))
+    # cv2.imshow('Original Image', img)
+    # cv2.waitKey(500)
     
-    cv2.imshow('Cropped Image', cropped_image)
-    cv2.waitKey(500)
+    # cv2.imshow('Cropped Image', cropped_image)
+    # cv2.waitKey(500)
 
-    disp_binary_img = cv2.resize(binary_image, (640, 480))
-    cv2.imshow('Binary Image', disp_binary_img)
-    cv2.waitKey(0)
+    # disp_binary_img = cv2.resize(binary_image, (640, 480))
+    # cv2.imshow('Binary Image', disp_binary_img)
+    # cv2.waitKey(0)
 
+    # find centroid
     y,x = np.nonzero(binary_image)
     average_column_position = x.mean() / binary_image.shape[1]
     average_row_position = y.mean() / binary_image.shape[0]
 
-    # plot the binary image and the average position (centroid) 
-    plt.figure()
-    plt.imshow(binary_image, cmap='gray')
-    plt.plot(average_column_position * binary_image.shape[1], average_row_position * binary_image.shape[0], 'r.') # yes that is stupid 
-    plt.title('Binary Image')
-    plt.show()
+    # # plot the binary image and the average position (centroid) 
+    # plt.figure()
+    # plt.imshow(binary_image, cmap='gray')
+    # plt.plot(average_column_position * binary_image.shape[1], average_row_position * binary_image.shape[0], 'r.') # yes that is stupid 
+    # plt.title('Binary Image')
+    # plt.show()
+
+
+    # Calculating deviations
+    column_deviation = abs(0.5 - average_column_position)
+    row_deviation = abs(0.5 - average_row_position)
 
     # Defining line start and end points
     vertical_line_start_point = (int(average_column_position * cropped_image.shape[1]), 0)
@@ -67,15 +70,14 @@ def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_thres
     horizontal_line_start_point = (0, int(average_row_position * cropped_image.shape[0]))
     horizontal_line_end_point = (cropped_image.shape[1], int(average_row_position * cropped_image.shape[0]))
 
-    # Printing line points
-    print("vertical line start:", vertical_line_start_point)
-    print("vertical line end:", vertical_line_end_point)
-    print("horizontal line start:", horizontal_line_start_point)
-    print("horizontal line end:", horizontal_line_end_point)
 
-    # Calculating deviations
-    column_deviation = abs(0.5 - average_column_position)
-    row_deviation = abs(0.5 - average_row_position)
+    # # Printing line points
+    # print("vertical line start:", vertical_line_start_point)
+    # print("vertical line end:", vertical_line_end_point)
+    # print("horizontal line start:", horizontal_line_start_point)
+    # print("horizontal line end:", horizontal_line_end_point)
+
+
 
     # Checking if deviations exceed thresholds
     if column_deviation > column_deviation_threshold or row_deviation > row_deviation_threshold:
@@ -89,6 +91,12 @@ def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_thres
         cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 0, 255), 1)
         cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
         cv2.putText(cropped_image, (str(average_row_position)[:8] + ")"), (int(0.1*cropped_image.shape[0]),int(0.2*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+        
+        # draw deviation threshold box
+        cv2.rectangle(cropped_image, (int(0.5 * cropped_image.shape[1] - column_deviation_threshold * cropped_image.shape[1]), int(0.5 * cropped_image.shape[0] - row_deviation_threshold * cropped_image.shape[0])), (int(0.5 * cropped_image.shape[1] + column_deviation_threshold * cropped_image.shape[1]), int(0.5 * cropped_image.shape[0] + row_deviation_threshold * cropped_image.shape[0])), (0, 0, 255), 1)
+
+
+        # show image
         cv2.imshow("final image", cropped_image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -105,12 +113,18 @@ def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_thres
         cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 255, 0), 1)
         cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
         cv2.putText(cropped_image, (str(average_row_position)[:8] + ")"), (int(0.1*cropped_image.shape[0]),int(0.2*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+
+        # draw deviation threshold box
+        cv2.rectangle(cropped_image, (int(0.5 * cropped_image.shape[1] - column_deviation_threshold * cropped_image.shape[1]), int(0.5 * cropped_image.shape[0] - row_deviation_threshold * cropped_image.shape[0])), (int(0.5 * cropped_image.shape[1] + column_deviation_threshold * cropped_image.shape[1]), int(0.5 * cropped_image.shape[0] + row_deviation_threshold * cropped_image.shape[0])), (0, 255, 0), 1)
+
+        # show image
         cv2.imshow("final image", cropped_image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
         return True
 
 
 # pinhole('./pinhole_original_test.jpg')
-pinhole('./pinhole_lights_on.jpg')
+pinhole('./pinhole_lights_on.jpg', row_deviation_threshold=.1, column_deviation_threshold=.1, center_point=(0.5, 0.48))
 # pinhole('./pinhole_lights_off.bmp')
