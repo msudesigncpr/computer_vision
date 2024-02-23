@@ -17,127 +17,111 @@ import datetime
 # - margin: Multiplier for the cropped image dimensions.
 
 def pinhole(img_file_path, row_deviation_threshold = 0.1, column_deviation_threshold = 0.1, center_point = (0.5, 0.5), x_margin=0.07, y_margin = 0.09):
-    # Reading image
-    img = cv2.imread(img_file_path)
-    if img is None:
-        print("Error: Could not read image file")
-        exit()
+    # # Reading image
+    # img = cv2.imread(img_file_path)
+    # if img is None:
+    #     print("Error: Could not read image file")
+    #     exit()
 
-    # Extracting image dimensions
-    img_width = img.shape[1]
-    img_height = img.shape[0]
+    # # Extracting image dimensions
+    # img_width = img.shape[1]
+    # img_height = img.shape[0]
     
-    # Setting initial x and y coordinates
-    x = float(center_point[0]) * img_width
-    y = float(center_point[1]) * img_height
+    # # Setting initial x and y coordinates
+    # x = float(center_point[0]) * img_width
+    # y = float(center_point[1]) * img_height
     
-    # Calculating cropped image dimensions
-    cropped_image_width = img_width * x_margin
-    cropped_image_height = img_height * y_margin
+    # # Calculating cropped image dimensions
+    # cropped_image_width = img_width * x_margin
+    # cropped_image_height = img_height * y_margin
 
-    # print box around where image will be cropped
-    cv2.rectangle(img, (int(x-cropped_image_width), int(y-cropped_image_height)), (int(x+cropped_image_width), int(y+cropped_image_height)), (255, 255, 255), 2)
-    cv2.imshow("my plans for cropping your image", img)
-    cv2.waitKey(0)
-
-    # x = center_point[0]
-    # y = center_point[1]
-
-    # Cropping the image
-    cropped_image = img[int(y-cropped_image_height):int(y+cropped_image_height), 
-                        int(x-cropped_image_width):int(x+cropped_image_width)]
-    if cropped_image is None:
-        print("Error: Could not crop image")
-        exit()
-
-    cv2.imshow("cropped image", cropped_image)
-    cv2.waitKey(0)
+    # # print box around where image will be cropped
+    # cv2.rectangle(img, (int(x-cropped_image_width), int(y-cropped_image_height)), (int(x+cropped_image_width), int(y+cropped_image_height)), (255, 255, 255), 2)
+    # # cv2.imshow("my plans for cropping your image", img)
+    # # cv2.waitKey(0)
 
 
-    # Converting cropped image to grayscale
-    gray_cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
+    # # Cropping the image
+    # cropped_image = img[int(y-cropped_image_height):int(y+cropped_image_height), 
+    #                     int(x-cropped_image_width):int(x+cropped_image_width)]
+    # if cropped_image is None:
+    #     print("Error: Could not crop image")
+    #     exit()
 
-    # Thresholding the grayscale image
-    _, binary_image = cv2.threshold(gray_cropped_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-
-    cv2.imshow("binary image", binary_image)
-
-    # Calculating row and column sums
-    row_sums = np.sum(binary_image, axis=1)
-    column_sums = np.sum(binary_image, axis=0)
-
-    # Calculating positions
-    row_positions = np.arange(binary_image.shape[0])
-    column_positions = np.arange(binary_image.shape[1])
-
-    # Calculating total row and column sums
-    total_row_sum = np.sum(row_sums)
-    total_column_sum = np.sum(column_sums)
-
-    # Calculating average row and column positions
-    average_row_position = np.dot(row_positions, row_sums) / total_row_sum
-    average_column_position = np.dot(column_positions, column_sums) / total_column_sum
-
-    # Normalizing average positions
-    average_row_position /= cropped_image.shape[0]
-    average_column_position /= cropped_image.shape[1]
-
-    # Printing average positions
-    print("Average Column Position:", average_column_position, "Average Row Position:", average_row_position)
-    
-
-    # resize cropped image to 640 x 640
-    cropped_image = cv2.resize(cropped_image, (640, 640))
+    # cv2.imshow("cropped image", cropped_image)
+    # cv2.waitKey(0)
 
 
-    # Defining line start and end points
-    vertical_line_start_point = (int(average_column_position * cropped_image.shape[1]), 0)
-    vertical_line_end_point = (int(average_column_position * cropped_image.shape[1]), cropped_image.shape[0])
+    # # Converting cropped image to grayscale
+    # gray_cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
 
-    horizontal_line_start_point = (0, int(average_row_position * cropped_image.shape[0]))
-    horizontal_line_end_point = (cropped_image.shape[1], int(average_row_position * cropped_image.shape[0]))
+    # # Thresholding the grayscale image
+    # _, binary_image = cv2.threshold(gray_cropped_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
-    # Printing line points
-    print("vertical line start:", vertical_line_start_point)
-    print("vertical line end:", vertical_line_end_point)
-    print("horizontal line start:", horizontal_line_start_point)
-    print("horizontal line end:", horizontal_line_end_point)
+    # kernel = np.ones((3,3), np.uint8)
+    # binary_image = cv2.morphologyEx(binary_image, cv2.MORPH_CLOSE, kernel)
 
-    # Calculating deviations
-    column_deviation = abs(0.5 - average_column_position)
-    row_deviation = abs(0.5 - average_row_position)
 
-    # Checking if deviations exceed thresholds
-    if column_deviation > column_deviation_threshold or row_deviation > row_deviation_threshold:
-        # Printing deviation details
-        print("One or more deviation exceeds threshold")
-        print("Column Deviation:", column_deviation, "Row Deviation:", row_deviation)
-        print("Column Deviation Threshold:", column_deviation_threshold, "Row Deviation Threshold:", row_deviation_threshold)
+    # y,x = np.nonzero(binary_image)
 
-        # Drawing lines and text on image
-        cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (0, 0, 255), 1)
-        cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 0, 255), 1)
-        cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
-        cv2.putText(cropped_image, (str(average_row_position)[:8] + ")"), (int(0.1*cropped_image.shape[0]),int(0.2*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
-        cv2.imshow("final image", cropped_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+    # # Find average
+    # average_column_position = x.mean() / binary_image.shape[1]
+    # average_row_position = y.mean() / binary_image.shape[0]
 
-        return False
-    else:
-        # Printing deviation details
-        print("Both deviations are within threshold")
-        print("Column Deviation:", column_deviation, "Row Deviation:", row_deviation)
-        print("Column Deviation Threshold:", column_deviation_threshold, "Row Deviation Threshold:", row_deviation_threshold)
 
-        # Drawing lines and text on image
-        cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (0, 255, 0), 1)
-        cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 255, 0), 1)
-        cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
-        cv2.putText(cropped_image, (str(average_row_position)[:8] + ")"), (int(0.1*cropped_image.shape[0]),int(0.2*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
-        cv2.imshow("final image", cropped_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+    # # resize cropped image to 640 x 640
+    # cropped_image = cv2.resize(cropped_image, (640, 640))
+    # cv2.imwrite("cropped_image.jpg", cropped_image)
+
+
+    # # Defining line start and end points
+    # vertical_line_start_point = (int(average_column_position * cropped_image.shape[1]), 0)
+    # vertical_line_end_point = (int(average_column_position * cropped_image.shape[1]), cropped_image.shape[0])
+
+    # horizontal_line_start_point = (0, int(average_row_position * cropped_image.shape[0]))
+    # horizontal_line_end_point = (cropped_image.shape[1], int(average_row_position * cropped_image.shape[0]))
+
+    # # Printing line points
+    # print("vertical line start:", vertical_line_start_point)
+    # print("vertical line end:", vertical_line_end_point)
+    # print("horizontal line start:", horizontal_line_start_point)
+    # print("horizontal line end:", horizontal_line_end_point)
+
+    # # Calculating deviations
+    # column_deviation = abs(0.5 - average_column_position)
+    # row_deviation = abs(0.5 - average_row_position)
+
+    # # Checking if deviations exceed thresholds
+    # if column_deviation > column_deviation_threshold or row_deviation > row_deviation_threshold:
+    #     # Printing deviation details
+    #     print("One or more deviation exceeds threshold")
+    #     print("Column Deviation:", column_deviation, "Row Deviation:", row_deviation)
+    #     print("Column Deviation Threshold:", column_deviation_threshold, "Row Deviation Threshold:", row_deviation_threshold)
+
+    #     # Drawing lines and text on image
+    #     cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (0, 0, 255), 1)
+    #     cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 0, 255), 1)
+    #     cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+    #     cv2.putText(cropped_image, (str(average_row_position)[:8] + ")"), (int(0.1*cropped_image.shape[0]),int(0.2*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+    #     cv2.imshow("final image", cropped_image)
+    #     cv2.waitKey(0)
+    #     cv2.destroyAllWindows()
+
+    #     return False
+    # else:
+    #     # Printing deviation details
+    #     print("Both deviations are within threshold")
+    #     print("Column Deviation:", column_deviation, "Row Deviation:", row_deviation)
+    #     print("Column Deviation Threshold:", column_deviation_threshold, "Row Deviation Threshold:", row_deviation_threshold)
+
+    #     # Drawing lines and text on image
+    #     cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (0, 255, 0), 1)
+    #     cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 255, 0), 1)
+    #     cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+    #     cv2.putText(cropped_image, (str(average_row_position)[:8] + ")"), (int(0.1*cropped_image.shape[0]),int(0.2*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+    #     cv2.imshow("final image", cropped_image)
+    #     cv2.waitKey(0)
+    #     cv2.destroyAllWindows()
         return True
 
 
