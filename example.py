@@ -9,7 +9,7 @@ import datetime
 # this is what is getting moved to yolo_dump
 cpr.process_petri_dish_image(image_folder_path='./images/', good_colony_coord_output_path='./good_colony_coords/', raw_yolo_dump_path='./yolo_dump/')
 
-cpr.create_metadata(image_folder_path='./images/', colony_coords_folder_path='./sampleColonies/', create_petri_dish_view=True, create_colony_view= True)
+cpr.create_metadata(image_folder_path='./baseplatePhotos/', colony_coords_folder_path='./sampleColonies/', create_petri_dish_view=True, create_colony_view= True)
 
 cpr.pinhole('./pinhole_test_images/pinhole_lights_on.jpg', save_image_path= './pinhole_test.jpg', row_deviation_threshold=.1, column_deviation_threshold=.1, center_point=(0.5, 0.48))
 
