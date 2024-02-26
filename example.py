@@ -9,9 +9,7 @@ import datetime
 # this is what is getting moved to yolo_dump
 cpr.process_petri_dish_image(image_folder_path='./images/', good_colony_coord_output_path='./good_colony_coords/', raw_yolo_dump_path='./yolo_dump/')
 
-# after running process_petri_dish_image, your code would presumably take the 6 text files in good_colony_coords, select 96 colonies, append the number of the well each was destined for
-# at the end of the line (more on that in the comments, search for "sarah"), and then call this function on them.
-cpr.create_metadata(image_folder_path='./images/', colony_coords_folder_path='./good_colony_coords/', create_petri_dish_view=True, create_colony_view= True)
+cpr.create_metadata(image_folder_path='./images/', colony_coords_folder_path='./sampleColonies/', create_petri_dish_view=True, create_colony_view= True)
 
-cpr.pinhole('./pinhole_lights_on.jpg', save_image_path= './pinhole_test.jpg', row_deviation_threshold=.1, column_deviation_threshold=.1, center_point=(0.5, 0.48))
+cpr.pinhole('./pinhole_test_images/pinhole_lights_on.jpg', save_image_path= './pinhole_test.jpg', row_deviation_threshold=.1, column_deviation_threshold=.1, center_point=(0.5, 0.48))
 
