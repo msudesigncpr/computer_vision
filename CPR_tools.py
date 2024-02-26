@@ -135,9 +135,6 @@ def pinhole(img_file_path, save_image_path = None, row_deviation_threshold = 0.1
         return True
 
 
-# pinhole('./pinhole_original_test.jpg')
-pinhole('./pinhole_lights_on.jpg', row_deviation_threshold=.1, column_deviation_threshold=.1, center_point=(0.5, 0.48))
-# pinhole('./pinhole_lights_off.bmp')
 
 
 
@@ -351,6 +348,7 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                     if create_petri_dish_view:
                         # Draw a small quare at the center of the colony
                         cv2.rectangle(image, (int(x-2), int(y-2)), (int(x+2), int(y+2)), (0, 0, 255), 1)
+                        cv2.putText(image, str(colony_number), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
 
                         #TODO add a box that indicates where the needle could have gone
 

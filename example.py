@@ -13,5 +13,5 @@ cpr.process_petri_dish_image(image_folder_path='./images/', good_colony_coord_ou
 # at the end of the line (more on that in the comments, search for "sarah"), and then call this function on them.
 cpr.create_metadata(image_folder_path='./images/', colony_coords_folder_path='./good_colony_coords/', create_petri_dish_view=True, create_colony_view= True)
 
-cpr.pinhole('./pinhole_lights_on.jpg', save_image_path= './pinhole_test.jpg', row_deviation_threshold=.1, column_deviation_threshold=.1, center_point=(0.5, 0.48))
+# cpr.pinhole('./pinhole_test_images/pinhole_lights_on.jpg', save_image_path= './pinhole_test_images/pinhole_test.jpg', row_deviation_threshold=.1, column_deviation_threshold=.1, center_point=(0.5, 0.48))
 
