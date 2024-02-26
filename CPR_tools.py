@@ -138,7 +138,6 @@ def pinhole(img_file_path, save_image_path = None, row_deviation_threshold = 0.1
 
 
 
-
 def parse_text_file(file_path):
     with open(file_path, 'r') as file:
         lines = file.readlines()
@@ -337,7 +336,7 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                     y = int(float(elements[2]) * image_height)
                     h = int(float(elements[3]) * image_height) 
                     w = int(float(elements[4]) * image_width)
-                    colony_number = int(elements[6])                                                          # SARAH: append the colony number (well letter/number) to the end of every line. 
+                    colony_number = str(elements[6])                                                          # SARAH: append the colony number (well letter/number) to the end of every line. 
                                                                                                                 # this will get used below, but its just a random number for now
                     r = int(h/2)
 
@@ -348,7 +347,9 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                     if create_petri_dish_view:
                         # Draw a small quare at the center of the colony
                         cv2.rectangle(image, (int(x-2), int(y-2)), (int(x+2), int(y+2)), (0, 0, 255), 1)
-                        cv2.putText(image, str(colony_number), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+
+                        #draw colony number on image next to the colony
+                        cv2.putText(image, str(colony_number), (int(x-5), int(y-5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
 
                         #TODO add a box that indicates where the needle could have gone
 
