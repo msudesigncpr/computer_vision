@@ -54,8 +54,8 @@ def pinhole(img_file_path, save_image_path = None, row_deviation_threshold = 0.1
     average_row_position = y.mean() / binary_image.shape[0]
 
     # Calculating deviations
-    column_deviation = abs(0.5 - average_column_position)
-    row_deviation = abs(0.5 - average_row_position)
+    column_deviation = (0.5 - average_column_position) * cropped_image.shape[1] # deviation in pixels in the width direction
+    row_deviation = (0.5 - average_row_position) * cropped_image.shape[0] # deviation in pixels in the height direction
 
 
     # Defining line start and end points
@@ -64,53 +64,27 @@ def pinhole(img_file_path, save_image_path = None, row_deviation_threshold = 0.1
 
     horizontal_line_start_point = (0, int(average_row_position * cropped_image.shape[0]))
     horizontal_line_end_point = (cropped_image.shape[1], int(average_row_position * cropped_image.shape[0]))
+    # Printing deviation details
+    print("One or more deviation exceeds threshold")
+    print("Column Deviation Magnitude:", column_deviation, "Row Deviation Magnitude:", row_deviation)
+    print("Column Deviation Threshold:", column_deviation_threshold, "Row Deviation Threshold:", row_deviation_threshold)
 
-    # Checking if deviations exceed thresholds
-    if column_deviation > column_deviation_threshold or row_deviation > row_deviation_threshold:
-        # Printing deviation details
-        print("One or more deviation exceeds threshold")
-        print("Column Deviation:", column_deviation, "Row Deviation:", row_deviation)
-        print("Column Deviation Threshold:", column_deviation_threshold, "Row Deviation Threshold:", row_deviation_threshold)
-
-        # Drawing lines and text on image
-        cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (0, 0, 255), 1)
-        cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 0, 255), 1)
-        cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
-        cv2.putText(cropped_image, (str(average_row_position)[:8] + ")"), (int(0.1*cropped_image.shape[0]),int(0.2*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
-        
-        # draw deviation threshold box
-        cv2.rectangle(cropped_image, (int(0.5 * cropped_image.shape[1] - column_deviation_threshold * cropped_image.shape[1]), int(0.5 * cropped_image.shape[0] - row_deviation_threshold * cropped_image.shape[0])), (int(0.5 * cropped_image.shape[1] + column_deviation_threshold * cropped_image.shape[1]), int(0.5 * cropped_image.shape[0] + row_deviation_threshold * cropped_image.shape[0])), (0, 0, 255), 1)
+    # put text on image
+    cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+    cv2.putText(cropped_image, (str(average_row_position)[:8] + ")"), (int(0.1*cropped_image.shape[0]),int(0.2*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+    
+    # draw deviation threshold box and centroid lines
+    cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (0, 0, 255), 1)
+    cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 0, 255), 1)
+    cv2.rectangle(cropped_image, (int(0.5 * cropped_image.shape[1] - column_deviation_threshold * cropped_image.shape[1]), int(0.5 * cropped_image.shape[0] - row_deviation_threshold * cropped_image.shape[0])), (int(0.5 * cropped_image.shape[1] + column_deviation_threshold * cropped_image.shape[1]), int(0.5 * cropped_image.shape[0] + row_deviation_threshold * cropped_image.shape[0])), (0, 0, 255), 1)
 
 
-        if save_image_path is not None:
-            cv2.imwrite(save_image_path, cropped_image)
+    if save_image_path is not None:
+        cv2.imwrite(save_image_path, cropped_image)
+        print("Image saved to: " + save_image_path)
 
-        column_deviation = column_deviation * cropped_image.shape[1]
-        row_deviation = row_deviation * cropped_image.shape[0]
-        return column_deviation, row_deviation
 
-    else:
-        # Printing deviation details
-        print("Both deviations are within threshold")
-        print("Column Deviation:", column_deviation, "Row Deviation:", row_deviation)
-        print("Column Deviation Threshold:", column_deviation_threshold, "Row Deviation Threshold:", row_deviation_threshold)
-
-        # Drawing lines and text on image
-        cv2.line(cropped_image, vertical_line_start_point, vertical_line_end_point, (0, 255, 0), 1)
-        cv2.line(cropped_image, horizontal_line_start_point, horizontal_line_end_point, (0, 255, 0), 1)
-        cv2.putText(cropped_image, ("("+str(average_column_position)[:8] + ","), (int(0.1*cropped_image.shape[0]),int(0.1*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
-        cv2.putText(cropped_image, (str(average_row_position)[:8] + ")"), (int(0.1*cropped_image.shape[0]),int(0.2*cropped_image.shape[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
-
-        # draw deviation threshold box
-        cv2.rectangle(cropped_image, (int(0.5 * cropped_image.shape[1] - column_deviation_threshold * cropped_image.shape[1]), int(0.5 * cropped_image.shape[0] - row_deviation_threshold * cropped_image.shape[0])), (int(0.5 * cropped_image.shape[1] + column_deviation_threshold * cropped_image.shape[1]), int(0.5 * cropped_image.shape[0] + row_deviation_threshold * cropped_image.shape[0])), (0, 255, 0), 1)
-
-        # show image
-        if save_image_path is not None:
-            cv2.imwrite(save_image_path, cropped_image)
-
-        column_deviation = column_deviation * cropped_image.shape[1]
-        row_deviation = row_deviation * cropped_image.shape[0]
-        return column_deviation, row_deviation
+    return column_deviation, row_deviation
 
 
 
