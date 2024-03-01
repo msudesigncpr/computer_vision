@@ -47,16 +47,34 @@ def pinhole(img_file_path, save_image_path = None, row_deviation_threshold = 0.1
     kernel = np.ones((3,3), np.uint8)
     binary_image = cv2.morphologyEx(binary_image, cv2.MORPH_CLOSE, kernel)
 
+    # # display images 
+    # img = cv2.resize(img, (640, 480))
+    # cv2.imshow('Original Image', img)
+    # cv2.waitKey(500)
+    
+    # cv2.imshow('Cropped Image', cropped_image)
+    # cv2.waitKey(500)
+
+    # disp_binary_img = cv2.resize(binary_image, (640, 480))
+    # cv2.imshow('Binary Image', disp_binary_img)
+    # cv2.waitKey(0)
 
     # find centroid
     y,x = np.nonzero(binary_image)
     average_column_position = x.mean() / binary_image.shape[1]
     average_row_position = y.mean() / binary_image.shape[0]
 
+    # # plot the binary image and the average position (centroid) 
+    # plt.figure()
+    # plt.imshow(binary_image, cmap='gray')
+    # plt.plot(average_column_position * binary_image.shape[1], average_row_position * binary_image.shape[0], 'r.') # yes that is stupid 
+    # plt.title('Binary Image')
+    # plt.show()
+
+
     # Calculating deviations
     column_deviation = abs(0.5 - average_column_position)
     row_deviation = abs(0.5 - average_row_position)
-
 
     # Defining line start and end points
     vertical_line_start_point = (int(average_column_position * cropped_image.shape[1]), 0)
@@ -64,6 +82,15 @@ def pinhole(img_file_path, save_image_path = None, row_deviation_threshold = 0.1
 
     horizontal_line_start_point = (0, int(average_row_position * cropped_image.shape[0]))
     horizontal_line_end_point = (cropped_image.shape[1], int(average_row_position * cropped_image.shape[0]))
+
+
+    # # Printing line points
+    # print("vertical line start:", vertical_line_start_point)
+    # print("vertical line end:", vertical_line_end_point)
+    # print("horizontal line start:", horizontal_line_start_point)
+    # print("horizontal line end:", horizontal_line_end_point)
+
+
 
     # Checking if deviations exceed thresholds
     if column_deviation > column_deviation_threshold or row_deviation > row_deviation_threshold:
@@ -85,10 +112,7 @@ def pinhole(img_file_path, save_image_path = None, row_deviation_threshold = 0.1
         if save_image_path is not None:
             cv2.imwrite(save_image_path, cropped_image)
 
-        column_deviation = column_deviation * cropped_image.shape[1]
-        row_deviation = row_deviation * cropped_image.shape[0]
-        return column_deviation, row_deviation
-
+        return False
     else:
         # Printing deviation details
         print("Both deviations are within threshold")
@@ -108,9 +132,7 @@ def pinhole(img_file_path, save_image_path = None, row_deviation_threshold = 0.1
         if save_image_path is not None:
             cv2.imwrite(save_image_path, cropped_image)
 
-        column_deviation = column_deviation * cropped_image.shape[1]
-        row_deviation = row_deviation * cropped_image.shape[0]
-        return column_deviation, row_deviation
+        return True
 
 
 
