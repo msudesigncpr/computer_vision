@@ -156,7 +156,7 @@ def resize_images(image_folder_path):
 # - model_sensitivity: Sensitivity of the YOLO model. 
 # !!!! the lower the number, the more colonies are detected !!!!
 
-def process_petri_dish_image(image_folder_path, good_colony_coord_output_path,  minimum_colony_distance = 0.03, model_sensitivity = 0.1, raw_yolo_dump_path = './yolo_dump'):
+def process_petri_dish_image(image_folder_path, good_colony_coord_output_path,  minimum_colony_distance = 0.03, model_sensitivity = 0.1, raw_yolo_dump_path = './yolo_dump', binary_save_folder_path = None):
     try:
         #resize all the images to 640x640
         resize_images(image_folder_path)
@@ -175,7 +175,7 @@ def process_petri_dish_image(image_folder_path, good_colony_coord_output_path,  
             base_file_name = os.path.splitext(os.path.basename(label))[0]
 
             # call that big ass discimination function.
-            discriminate(image_file_path=os.path.join(image_folder_path,base_file_name +'.jpg'), prediction_file_path= os.path.join(label_folder_path, label), good_output_path=good_colony_coord_output_path, min_distance=minimum_colony_distance)
+            discriminate(image_file_path=os.path.join(image_folder_path, base_file_name +'.jpg'), prediction_file_path= os.path.join(label_folder_path, label), good_output_path=good_colony_coord_output_path, min_distance=minimum_colony_distance, binary_save_folder_path=binary_save_folder_path)
         
         # move the stuff in label_folder_path to raw_yolo_dump_path
         move_YOLO_stuff(raw_yolo_dump_path)
@@ -288,7 +288,7 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                     y = int(float(elements[2]) * image_height)
                     h = int(float(elements[3]) * image_height) 
                     w = int(float(elements[4]) * image_width)
-                    colony_number = str(elements[6])                                                          # SARAH: append the colony number (well letter/number) to the end of every line. 
+                    # colony_number = str(elements[6])                                                          # SARAH: append the colony number (well letter/number) to the end of every line. 
                                                                                                                 # this will get used below, but its just a random number for now
                     r = int(h/2)
 
@@ -301,11 +301,10 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                         cv2.rectangle(image, (int(x-2), int(y-2)), (int(x+2), int(y+2)), (0, 0, 255), 1)
 
                         #draw colony number on image next to the colony
-                        cv2.putText(image, str(colony_number), (int(x-5), int(y-5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+                        # cv2.putText(image, str(colony_number), (int(x-5), int(y-5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
 
                         #TODO add a box that indicates where the needle could have gone
 
-                    
                     # If specified, create a colony view
                     if create_colony_view:
                         # Crop the image to focus on the colony area
@@ -313,8 +312,7 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                         # random number
                         # colony_number = random.randint(1, 1000)                                                     #SARAH: this will be replaced with the colony number above, once you start sending me back files with that
 
-                        cv2.imwrite(os.path.join(bing, '_' + str(colony_number) + '.jpg'), cropped_image)
-
+                        # cv2.imwrite(os.path.join(bing, '_' + str(colony_number) + '.jpg'), cropped_image)
 
                 if create_petri_dish_view:
                     # Write the modified image with the colony annotations to the output metadata folder
@@ -495,16 +493,11 @@ def binary_disciminate(img_file_path, x, y, width, height, margin = .5, erosion_
             gray_cropped_image = cropped_image
 
         # -----------------------------------------------THRESHOLD BINERIZATION----------------------
-        hist = cv2.calcHist([gray_cropped_image], [0], None, [256], [0, 256])
-        hist = hist.ravel()
-        z = np.linspace(0, 255, 256)
-        param = norm.fit(z, loc=np.mean(hist), scale=np.std(hist))
-        mean, std_dev = param
-        k = .5 
-        threshold = int(mean - k * std_dev)
-        binary_image = cv2.threshold(gray_cropped_image, threshold, 255, cv2.THRESH_BINARY)[1]
-        binary_image = cv2.bitwise_not(binary_image)                                                #invert                                 
-        title = ""
+        _, binary_image = cv2.threshold(gray_cropped_image, 50, 255, cv2.THRESH_BINARY)
+        kernel = np.ones((3,3), np.uint8)
+        binary_image = cv2.morphologyEx(binary_image, cv2.MORPH_CLOSE, kernel)                                             
+         #invert                                 
+        binary_image = cv2.bitwise_not(binary_image)
         
         if original_display:
             title = "Original"
@@ -526,11 +519,15 @@ def binary_disciminate(img_file_path, x, y, width, height, margin = .5, erosion_
         total_column_sum = np.sum(column_sums)
 
         # Calculate the average row and column positions
-        average_row_position = np.dot(row_positions, row_sums) / (total_row_sum * width * 2)
-        average_column_position = np.dot(column_positions, column_sums) / (total_column_sum * height * 2)
+        MAX_ROW_OFFSET = .3
+        MAX_COLUMN_OFFSET = .3
 
-        MAX_ROW_OFFSET = .4
-        MAX_COLUMN_OFFSET = .4
+        if (total_row_sum * width * 2) == 0 or (total_column_sum * height * 2) == 0:
+            average_row_position = 0
+            average_column_position = 0
+        else:
+            average_row_position = np.dot(row_positions, row_sums) / (total_row_sum * width * 2)
+            average_column_position = np.dot(column_positions, column_sums) / (total_column_sum * height * 2)
 
         row_offset = abs(MAX_ROW_OFFSET - average_row_position)
         column_offset = abs(MAX_COLUMN_OFFSET - average_column_position)
@@ -591,6 +588,7 @@ def binary_disciminate(img_file_path, x, y, width, height, margin = .5, erosion_
                         eroded_binary_image = cv2.resize(eroded_binary_image, (640, 640))
                         file_name = os.path.splitext(os.path.basename(img_file_path))[0]
                         binary_save_path = os.path.join(save_path, file_name + "_" + title + ".jpg")
+
                         cropped_save_path = os.path.join(save_path, random_lil_fucker + "cropped" + file_name + ".jpg")
 
                         # print("saving cropped good colony to: " + cropped_save_path)
@@ -629,7 +627,7 @@ def binary_disciminate(img_file_path, x, y, width, height, margin = .5, erosion_
                         cv2.imwrite(cropped_save_path, cropped_image)
             return True
     except Exception as e:
-        print("An error occured while creating binary discriminating + " + str(e))
+        print("An error occured while binary discriminating + " + str(e))
         
 
 ############################################################################################################ DISCRIMINATE
@@ -662,13 +660,13 @@ def discriminate(prediction_file_path,
                  BLACK = 'MAGIC',      #do not remove--code will break
                  good_output_path = None,
                  bad_output_path = None,
-                 min_distance = .03,
+                 min_distance = 0.03,
                  min_selection_confidence = 0.14, 
-                 min_discrimination_confidence = .05, 
-                 min_size = .01, 
-                 max_size = .5, 
-                 maximum_ratio = .15, 
-                 petri_dish_radius = .4,
+                 min_discrimination_confidence = 0.05, 
+                 min_size = 0.01, 
+                 max_size = 0.5, 
+                 maximum_ratio = 0.15, 
+                 petri_dish_radius = 0.3,
                  binary_discrimination_margin = 2,
                  binary_bad_display = True,
                  binary_good_display = True,
