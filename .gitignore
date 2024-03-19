@@ -1,4 +1,5 @@
 *.jpg
+*.png
 *.avi
 __pycache__\
-yolo_dump\
+yolo_dump\*
