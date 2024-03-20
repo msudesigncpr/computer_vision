@@ -100,32 +100,35 @@ def parse_text_file(file_path):
 # moves all files in ./runs/detect to destination_folder_path
 
 def move_YOLO_stuff(destination_folder_path):
-    try:
+    if destination_folder_path is not None:
+        try:
 
-        # date and time
-        now = datetime.datetime.now()
-        now = str(now)
-        #remove spaces
-        now = now.replace(" ", "_")
-        #remove colons
-        now = now.replace(":", "-")
-        #remove periods
-        now = now.replace(".", "-")
+            # date and time
+            now = datetime.datetime.now()
+            now = str(now)
+            #remove spaces
+            now = now.replace(" ", "_")
+            #remove colons
+            now = now.replace(":", "-")
+            #remove periods
+            now = now.replace(".", "-")
 
-        destination_folder_path = os.path.join(destination_folder_path,now)
-        print("Moving YOLO stuff to: " + destination_folder_path)
+            destination_folder_path = os.path.join(destination_folder_path,now)
+            print("Moving YOLO stuff to: " + destination_folder_path)
 
-        # check if destination_folder_path exists, if not create it
-        if not os.path.exists(destination_folder_path):
-            os.makedirs(destination_folder_path)
+            # check if destination_folder_path exists, if not create it
+            if not os.path.exists(destination_folder_path):
+                os.makedirs(destination_folder_path)
 
-        # move all files in ./runs/detect to destination_folder_path
-        for file in os.listdir('./runs/detect'):
-            os.rename(os.path.join('./runs/detect', file), os.path.join(destination_folder_path, file))
+            # move all files in ./runs/detect to destination_folder_path
+            for file in os.listdir('./runs/detect'):
+                os.rename(os.path.join('./runs/detect', file), os.path.join(destination_folder_path, file))
 
 
-    except Exception as e:
-        print("An error occured while moving YOLO stuff + " + str(e))
+        except Exception as e:
+            print("An error occured while moving YOLO stuff + " + str(e))
+    else:
+        print("No destination folder path specified. YOLO stuff not moved.")
 
 
 ############################################################################################################ -- RESIZE IMAGES --
@@ -288,6 +291,7 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                     y = int(float(elements[2]) * image_height)
                     h = int(float(elements[3]) * image_height) 
                     w = int(float(elements[4]) * image_width)
+                    colony_number = random.randint(1, 1000)                                                     
                     # colony_number = str(elements[6])                                                          # SARAH: append the colony number (well letter/number) to the end of every line. 
                                                                                                                 # this will get used below, but its just a random number for now
                     r = int(h/2)
@@ -301,7 +305,7 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                         cv2.rectangle(image, (int(x-2), int(y-2)), (int(x+2), int(y+2)), (0, 0, 255), 1)
 
                         #draw colony number on image next to the colony
-                        # cv2.putText(image, str(colony_number), (int(x-5), int(y-5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+                        cv2.putText(image, str(colony_number), (int(x-5), int(y-5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
 
                         #TODO add a box that indicates where the needle could have gone
 
@@ -312,7 +316,7 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
                         # random number
                         # colony_number = random.randint(1, 1000)                                                     #SARAH: this will be replaced with the colony number above, once you start sending me back files with that
 
-                        # cv2.imwrite(os.path.join(bing, '_' + str(colony_number) + '.jpg'), cropped_image)
+                        cv2.imwrite(os.path.join(bing, '_' + str(colony_number) + '.jpg'), cropped_image)
 
                 if create_petri_dish_view:
                     # Write the modified image with the colony annotations to the output metadata folder
@@ -660,9 +664,9 @@ def discriminate(prediction_file_path,
                  BLACK = 'MAGIC',      #do not remove--code will break
                  good_output_path = None,
                  bad_output_path = None,
-                 min_distance = 0.03,
-                 min_selection_confidence = 0.14, 
-                 min_discrimination_confidence = 0.05, 
+                 min_distance = 0.01,
+                 min_selection_confidence = 0.01, # change back to 0.14
+                 min_discrimination_confidence = 1.05, # change back to 0.05 
                  min_size = 0.01, 
                  max_size = 0.5, 
                  maximum_ratio = 0.15, 
