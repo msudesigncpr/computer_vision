@@ -1,5 +1,4 @@
-*.jpg
-*.png
 *.avi
 __pycache__
 yolo_dump
+binary_images

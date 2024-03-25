@@ -13,6 +13,8 @@ shutil.rmtree('.\\metadata\petri_dish_view\\')
 
 
 
+
+
 cpr.process_petri_dish_image(image_folder_path='./bad_test/', good_colony_coord_output_path='./good_colony_coords/', raw_yolo_dump_path=None, binary_save_folder_path='./binary_images/', model_sensitivity=0.01)
 
 
