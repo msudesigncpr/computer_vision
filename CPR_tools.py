@@ -87,9 +87,6 @@ def pinhole(img_file_path, save_image_path = None, row_deviation_threshold = 0.1
     return column_deviation, row_deviation
 
 
-
-
-
 def parse_text_file(file_path):
     with open(file_path, 'r') as file:
         lines = file.readlines()
@@ -159,7 +156,7 @@ def resize_images(image_folder_path):
 # - model_sensitivity: Sensitivity of the YOLO model. 
 # !!!! the lower the number, the more colonies are detected !!!!
 
-def process_petri_dish_image(image_folder_path, good_colony_coord_output_path,  minimum_colony_distance = 0.03, model_sensitivity = 0.1, raw_yolo_dump_path = './yolo_dump', binary_save_folder_path = None):
+def process_petri_dish_image(image_folder_path, good_colony_coord_output_path,  minimum_colony_distance = 0.01, model_sensitivity = 0.1, raw_yolo_dump_path = './yolo_dump', binary_save_folder_path = None):
     try:
         #resize all the images to 640x640
         resize_images(image_folder_path)
@@ -298,14 +295,14 @@ def create_metadata(image_folder_path, colony_coords_folder_path, metadata_outpu
 
                     if create_colony_view or create_petri_dish_view:
                         cv2.circle(image, (x, y), r, (0, 255, 0), 1)
+                        # Draw a small quare at the center of the colony
+                        # cv2.rectangle(image, (int(x-40), int(y-40)), (int(x+40), int(y+40)), (0, 0, 255), 1)
 
                     # If specified, create a petri dish view
-                    if create_petri_dish_view:
-                        # Draw a small quare at the center of the colony
-                        cv2.rectangle(image, (int(x-2), int(y-2)), (int(x+2), int(y+2)), (0, 0, 255), 1)
+                    # if create_petri_dish_view:
 
                         #draw colony number on image next to the colony
-                        cv2.putText(image, str(colony_number), (int(x-5), int(y-5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+                        # cv2.putText(image, str(colony_number), (int(x+20), int(y-20)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 1)
 
                         #TODO add a box that indicates where the needle could have gone
 
@@ -372,13 +369,13 @@ def add_hough_circles(image, prediction_file_path, display=False, display_time=5
         cv2.destroyAllWindows()
 
 
-#function to determine the distance from the center of the image to the center of the box
+# MUST BE FIXED !!!
 def distance(x0, y0, r0=0, x1=.5, y1=.5, r1=0):
     x_dist = abs(x0 - x1) ** 2
     y_dist = abs(y0 - y1) ** 2
     distance = (x_dist + y_dist) ** .5
-    distance = distance - (r0 + r1)
-    return (x_dist + y_dist) ** .5
+    # distance -= (r0 + r1)
+    return abs(distance)
         
 ############################################################################################################ --ADD HOUGH CIRCLES--
 #creates a .txt file with coordinates / size of colonies detected by hough circles
@@ -649,7 +646,7 @@ def binary_disciminate(img_file_path, x, y, width, height, margin = .5, erosion_
 # - bad_output_path: Path to the file where the predictions for bad colonies are written.
 # - min_distance: Minimum distance between two colonies.
 # - min_selection_confidence: Minimum confidence for a colony to be selected.
-# - min_discrimination_confidence: Minimum confidence for a colony to be used for discrimination.
+# - min_discrimination_confidence: Minimum confidence for a colony to be used for discrimination. If there is a colony next to another colony, the colony next to the colony in question must have a confidence above this threshold.
 # - min_size: Minimum size of a colony.
 # - max_size: Maximum size of a colony.
 # - maximum_ratio: Maximum ratio between width and height of a colony.
@@ -664,9 +661,9 @@ def discriminate(prediction_file_path,
                  BLACK = 'MAGIC',      #do not remove--code will break
                  good_output_path = None,
                  bad_output_path = None,
-                 min_distance = 0.01,
+                 min_distance = 0.0,
                  min_selection_confidence = 0.01, # change back to 0.14
-                 min_discrimination_confidence = 1.05, # change back to 0.05 
+                 min_discrimination_confidence = .05, # change back to 0.05 
                  min_size = 0.01, 
                  max_size = 0.5, 
                  maximum_ratio = 0.15, 
@@ -718,7 +715,7 @@ def discriminate(prediction_file_path,
                 main_colony   = main_colony_line.split() # [class, x, y, width, height, confidence]
                 main_colony_x = float(main_colony[1])
                 main_colony_y = float(main_colony[2])
-                main_colony_w = float(main_colony[3])
+                main_colony_r = float(main_colony[3])
                 main_colony_h = float(main_colony[4])
                 main_colony_confidence = float(main_colony[5])
                 ratio = abs((float(main_colony[4]) / float(main_colony[3])) - 1 ) #ok really this is how not square it is not the ratio but close enough
@@ -726,7 +723,7 @@ def discriminate(prediction_file_path,
                 is_bad_colony = True
                 if(distance(x0=main_colony_x, y0=main_colony_y) < petri_dish_radius and             # discriminate against colonies that are outside / near edge or petri dish 
                    main_colony_confidence > min_selection_confidence and                            # discriminate against colonies that are not confident enough       
-                   binary_disciminate(img_file_path=image_file_path, x=main_colony_x, y=main_colony_y, width=main_colony_w,
+                   binary_disciminate(img_file_path=image_file_path, x=main_colony_x, y=main_colony_y, width=main_colony_r,
                                         height=main_colony_h, original_display=binary_original_display, good_display = binary_good_display, bad_display=binary_bad_display, display_time=display_time, margin=binary_discrimination_margin, save_folder_path=binary_save_folder_path)):                    # discriminate against colonies that have too much shit near them
                     is_bad_colony = False
                     #iterate through all of the other colonies and check if there are any that are too close to the colony in question
@@ -737,13 +734,14 @@ def discriminate(prediction_file_path,
                         neighbor_colony_r = float(neighbor_colony[3])
                         neighbor_colony_confidence = float(neighbor_colony[5])
 
-                        distance_between_colonies = distance(x0=main_colony_x, y0=main_colony_y, r0=main_colony_w, 
+                        distance_between_colonies = distance(x0=main_colony_x, y0=main_colony_y, r0=main_colony_r, 
                                                             x1=neighbor_colony_x, y1=neighbor_colony_y, r1=neighbor_colony_r)
 
                         if (distance_between_colonies <  min_distance and                #distance to colony
                             distance_between_colonies != 0.0 and                         #make sure it's not the same colony
                             neighbor_colony_confidence > min_discrimination_confidence): #make sure the colony prediction is confident enough to be used for discrimination
                             is_bad_colony = True
+                            print(distance_between_colonies)
 
                 #write bad colonies to bad_colonies.txt and good colonies to good_colonies.txt
                 #only write the colony if it is not already in the file
