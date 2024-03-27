@@ -465,7 +465,7 @@ def add_hough_circles(image_path,
 # Returns:
 # - Boolean that determines whether or not the colony is good.
 
-def binary_disciminate(img_file_path, x, y, width, height, margin = .5, erosion_thresholds = (25, 999, 999, 999), erosion_iterations = (0, 1, 2, 3), original_display = False, bad_display = False, good_display=False, display_time = 2000, save_folder_path = None):
+def binary_disciminate(img_file_path, x, y, width, height, margin = .5, erosion_thresholds = (999, 999, 999, 999), erosion_iterations = (0, 1, 2, 3), original_display = False, bad_display = False, good_display=False, display_time = 2000, save_folder_path = None):
     try:
 
         # -----------------------------------------------LOAD IMAGE AND PROPERTIES------------------
@@ -662,7 +662,7 @@ def discriminate(prediction_file_path,
                  good_output_path = None,
                  bad_output_path = None,
                  min_distance = 0.0,
-                 min_selection_confidence = 0.01, # change back to 0.14
+                 min_selection_confidence = 0.0, # change back to 0.14
                  min_discrimination_confidence = .05, # change back to 0.05 
                  min_size = 0.01, 
                  max_size = 0.5, 
