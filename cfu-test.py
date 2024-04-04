@@ -10,12 +10,11 @@ subprocess.run(['wsl', 'pwd'])
 
 
 petri_dish_name = 'p0'
-cfu_coord_path = '../coords/'+ petri_dish_name + '.csv'
+cfu_coord_path = '../cfu_coords/'+ petri_dish_name + '.csv' # path to coords for individual colony
 # subprocess.run(['wsl', 'mkdir', '../coords'])
 subprocess.run(['wsl', './opencfu', '-i', '/mnt/c/Users/colon/Documents/computer_vision/red/petri_dish_0.jpg', '>', cfu_coord_path])
 
-
-# subprocess.run(['wsl', 'mv', cfu_coord_path, '/mnt/c/Users/colon/OneDrive/Documents'])
+subprocess.run(['wsl', 'mv', cfu_coord_path, '/mnt/c/Users/colon/OneDrive/Documents'])
 
 # (subprocess.run(['wsl', './opencfu', '-i', '' '>', '/mnt/c/Users/colon/OneDrive/Documents/test.txt']))
 
